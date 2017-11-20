@@ -25,7 +25,7 @@ def mismatch(y, ystar, M0=2, mu=0.01, epsilon=3):
     m = (M0/2.0) * (1 + np.tanh((abs(y-ystar)-epsilon)/mu))
     return m
 
-def converged(values, value=0, ratio=0.2):
+def converged(values, value=0, ratio=0.05):
     n = len(values)
     m = int((1-ratio)*n)
     return all([ v == value for v in values[m:n]])
@@ -117,7 +117,7 @@ class Cell(object):
         return None
                 
 class Walk(object):
-    def __init__(self, cell, max_iter, ystar, M0=2, mu=0.01, epsilon=3, deltat=5, ratio=0.2):
+    def __init__(self, cell, max_iter, ystar, M0=2, mu=0.01, epsilon=3, deltat=5, ratio=0.05, save=True):
         self.J=cell.J0
         J=self.J
         self.B=cell.B
@@ -138,12 +138,13 @@ class Walk(object):
         self.deltat=deltat
         self.ratio=ratio
         
-        ylist = [pheno(B,X)]
-        xlist = [X]
-        jlist = [J]
-        xdeltalist = [X]
-        xreslist = [X]
-        wlist = [np.multiply(T, J)]
+        if save:
+            ylist = [pheno(B,X)]
+            xlist = [X]
+            jlist = [J]
+            xdeltalist = [X]
+            xreslist = [X]
+            wlist = [np.multiply(T, J)]
         mlist = [mismatch(pheno(B,X), ystar=ystar, M0=M0, mu=mu, epsilon=epsilon)]
         
         vtanh=np.vectorize(np.tanh)
@@ -167,20 +168,22 @@ class Walk(object):
             
             # iterate
             i += 1
-            ylist.append(pheno(B,X))
-            xlist.append(X)
-            jlist.append(J)
-            wlist.append(W)
-            xreslist.append(Xres)
-            xdeltalist.append(Xdelta)
+            if save:
+                ylist.append(pheno(B,X))
+                xlist.append(X)
+                jlist.append(J)
+                wlist.append(W)
+                xreslist.append(Xres)
+                xdeltalist.append(Xdelta)
             mlist.append(mismatch(pheno(B,X), ystar=ystar, M0=M0, mu=mu, epsilon=epsilon))
-            
-        self.ylist=ylist
-        self.xlist=xlist
-        self.jlist=jlist
-        self.wlist=wlist
-        self.xreslist=xreslist
-        self.xdeltalist=xdeltalist
+        
+        if save:
+            self.ylist=ylist
+            self.xlist=xlist
+            self.jlist=jlist
+            self.wlist=wlist
+            self.xreslist=xreslist
+            self.xdeltalist=xdeltalist
         self.mlist=mlist
         self.converging=converged(mlist, ratio=ratio)
     
