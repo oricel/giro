@@ -30,6 +30,20 @@ def converged(values, value=0, ratio=0.05):
     m = int((1-ratio)*n)
     return all([ v == value for v in values[m:n]])
     
+def create_degree_sequence(n, sfunction=None, max_tries=50, **kwds):
+    tries=0
+    max_deg=n
+    while tries < max_tries:
+        trialseq=sfunction(n,**kwds)
+        # round to integer values in the range [0,max_deg]
+        seq=[min(max_deg, max( int(round(s)),0 )) for s in trialseq]
+        # if graphical return, else throw away and try again
+        if nx.is_valid_degree_sequence(seq):
+            return seq
+        tries+=1
+    raise nx.NetworkXError(\
+          "Exceeded max (%d) attempts at a valid sequence."%max_tries)
+    
 class Cell(object):
     def __init__(self, N, alpha=1.0, beta=2.4,
                  c=0.5, alph=100,
@@ -61,20 +75,18 @@ class Cell(object):
         self.init_network()
         self.init_pheno()
         
+     
     def init_network(self):
         N = self.N
-        #z=nx.utils.create_degree_sequence(N,powerlaw_sequence)
         while True:
-            def seq(n):
-                return [random.gammavariate(alpha=self.alpha,beta=self.beta) for i in range(N)]   
-            z_in=nx.utils.create_degree_sequence(N,seq)
-            def seq(n):
-                return [random.gammavariate(alpha=self.alpha,beta=self.beta) for i in range(N)]    
-            z_out=nx.utils.create_degree_sequence(N,seq)
+            seq = [random.gammavariate(alpha=self.alpha,beta=self.beta) for i in range(N)]
+            z_in = [min(N, max( int(round(s)),0 )) for s in seq]
+            seq = [random.gammavariate(alpha=self.alpha,beta=self.beta) for i in range(N)]
+            z_out=[min(N, max( int(round(s)),0 )) for s in seq]
             if (sum(z_in) == sum(z_out)):
                 break
-        nx.is_valid_degree_sequence(z_in)
-        nx.is_valid_degree_sequence(z_out)
+        #nx.is_valid_degree_sequence(z_in)
+        #nx.is_valid_degree_sequence(z_out)
 
         G=nx.directed_configuration_model(z_in,z_out)  # configuration model
 
