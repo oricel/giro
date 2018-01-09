@@ -93,7 +93,7 @@ class Cell(object):
         # remove multiple edges
         G=nx.DiGraph(G)
         # remove self loops
-        G.remove_edges_from(G.selfloop_edges())
+        #G.remove_edges_from(G.selfloop_edges())
 
         NK = len(G.edges())
         
